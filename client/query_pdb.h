@@ -1,5 +1,5 @@
-#ifndef QUERY_PDB_QUERY_PDB_HPP
-#define QUERY_PDB_QUERY_PDB_HPP
+#ifndef QUERY_PDB_CLIENT_QUERY_PDB_H
+#define QUERY_PDB_CLIENT_QUERY_PDB_H
 
 #include <string>
 #include <memory>
@@ -7,6 +7,8 @@
 #include <sstream>
 #include <iomanip>
 #include <utility>
+#include <httplib.h>
+#include <json.hpp>
 #include <windows.h>
 
 #include <iostream>
@@ -16,7 +18,9 @@ public:
     qpdb(const std::string &path, std::string server)
             : pe_(nullptr),
               size_(0),
-              server_(std::move(server)) {
+              server_(std::move(server)),
+              info_(),
+              valid_(false) {
 
         if (server_.empty()) {
             return;
@@ -33,20 +37,26 @@ public:
         pe_ = std::unique_ptr<std::uint8_t[]>(new std::uint8_t[size_]);
         f.read(reinterpret_cast<char *>(pe_.get()),
                static_cast<std::streamsize>(size_));
+
+        info_ = get_pdb_path_info();
+        if (!info_.name.empty() && !info_.guid.empty()) {
+            valid_ = true;
+        }
     }
 
     explicit qpdb(const std::string &path)
-            : qpdb(path, "http://localhost:8080/") {}
+            : qpdb(path, default_server()) {}
+
+    static std::string &default_server() {
+        static std::string default_server_;
+        return default_server_;
+    }
 
     void test() {
         std::cout << build_download_path() << std::endl;
     }
 
 private:
-    std::unique_ptr<std::uint8_t[]> pe_;
-    std::size_t size_;
-    std::string server_;
-
     struct pdb_path_info {
         std::string name;
         std::string guid;
@@ -59,6 +69,12 @@ private:
         DWORD age;
         char pdb_file_name[1];
     };
+
+    std::unique_ptr<std::uint8_t[]> pe_;
+    std::size_t size_;
+    std::string server_;
+    pdb_path_info info_;
+    bool valid_;
 
     static pdb_path_info parse_raw_debug_info(raw_debug_info *raw) {
         pdb_path_info result;
@@ -91,7 +107,9 @@ private:
     }
 
     std::string build_download_path() {
-        pdb_path_info info = get_pdb_path_info();
+        if (!valid_) {
+            return {};
+        }
 
         std::stringstream ss;
         ss << std::hex << std::uppercase;
@@ -100,9 +118,9 @@ private:
         if (server_.back() != '/') {
             ss << '/';
         }
-        ss << info.name << '/' << info.guid << info.age << '/' << info.name;
+        ss << info_.name << '/' << info_.guid << info_.age << '/' << info_.name;
         return ss.str();
     }
 };
 
-#endif //QUERY_PDB_QUERY_PDB_HPP
+#endif //QUERY_PDB_CLIENT_QUERY_PDB_H
