@@ -3,7 +3,6 @@
 
 #include <string>
 #include <mutex>
-#include <set>
 
 class downloader {
 public:
