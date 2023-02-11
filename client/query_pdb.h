@@ -32,7 +32,7 @@ public:
         }
 
         f.seekg(0, std::ios::end);
-        size_ = f.tellg();
+        size_ = static_cast<std::size_t>(f.tellg());
         f.seekg(0, std::ios::beg);
         pe_ = std::unique_ptr<std::uint8_t[]>(new std::uint8_t[size_]);
         f.read(reinterpret_cast<char *>(pe_.get()),
