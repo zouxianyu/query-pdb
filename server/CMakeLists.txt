@@ -19,5 +19,9 @@ target_include_directories(
 target_link_libraries(
         query_pdb_server
         PRIVATE
-        ws2_32.lib
+        raw_pdb
+        spdlog
+        cxxopts
+        nlohmann_json
+        httplib
 )

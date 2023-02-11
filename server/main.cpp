@@ -1,26 +1,28 @@
-#include <json.hpp>
 #include <utility>
 #include <httplib.h>
-#include <cmdline.h>
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/daily_file_sink.h"
+#include <cxxopts.hpp>
+#include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/daily_file_sink.h>
 #include "downloader.h"
 
 int main(int argc, char *argv[]) {
-    cmdline::parser parser;
-    parser.add<std::string>("ip", 'i', "ip address", false, "0.0.0.0");
-    parser.add<uint16_t>("port", 'p', "port", false, 8080);
-    parser.add<std::string>("path", 'd', "download path", false, "save");
-    parser.add<std::string>("server", 's', "download server", false,
-                            "http://msdl.microsoft.com/download/symbols/");
-    parser.add<bool>("log", 'l', "write log to file", false, false);
-    parser.parse_check(argc, argv);
+    cxxopts::Options option_parser("query-pdb", "pdb query server");
+    option_parser.add_options()
+            ("ip", "ip address", cxxopts::value<std::string>()->default_value("0.0.0.0"))
+            ("port", "port", cxxopts::value<uint16_t>()->default_value("8080"))
+            ("path", "download path", cxxopts::value<std::string>()->default_value("save"))
+            ("server", "download server", cxxopts::value<std::string>()->default_value(
+                    "http://msdl.microsoft.com/download/symbols/"))
+            ("log", "write log to file", cxxopts::value<bool>()->default_value("false"));
 
-    const auto ip = parser.get<std::string>("ip");
-    const auto port = parser.get<uint16_t>("port");
-    const auto download_path = parser.get<std::string>("path");
-    const auto download_server = parser.get<std::string>("server");
-    const auto log_to_file = parser.get<bool>("log");
+    auto parse_result = option_parser.parse(argc, argv);
+
+    const auto ip = parse_result["ip"].as<std::string>();
+    const auto port = parse_result["port"].as<uint16_t>();
+    const auto download_path = parse_result["path"].as<std::string>();
+    const auto download_server = parse_result["server"].as<std::string>();
+    const auto log_to_file = parse_result["log"].as<bool>();
 
     if (log_to_file) {
         spdlog::set_default_logger(spdlog::daily_logger_mt("query-pdb", "server.log"));
