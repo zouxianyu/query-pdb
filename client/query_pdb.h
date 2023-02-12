@@ -11,8 +11,6 @@
 #include <nlohmann/json.hpp>
 #include <windows.h>
 
-#include <iostream>
-
 class qpdb {
 public:
     qpdb(const std::string &path, std::string server)
@@ -52,8 +50,32 @@ public:
         return default_server_;
     }
 
-    void test() {
-        std::cout << build_download_path() << std::endl;
+    static void set_default_server(const std::string &server) {
+        default_server() = server;
+    }
+
+    std::map<std::string, int64_t> get_symbol(const std::set<std::string> &names) const {
+        if (!valid_) {
+            throw std::runtime_error("invalid file, cannot get pdb info");
+        }
+
+        nlohmann::json j;
+        j["name"] = info_.name;
+        j["guid"] = info_.guid;
+        j["age"] = info_.age;
+        j["query"] = names;
+
+        httplib::Client client(server_);
+        auto res = client.Post("/symbol", j.dump(), "application/json");
+        if (!res || res->status != 200) {
+            throw std::runtime_error("request failed");
+        }
+
+        return nlohmann::json::parse(res->body).get<std::map<std::string, int64_t>>();
+    }
+
+    int64_t get_symbol(const std::string &name) const {
+        return get_symbol(std::set<std::string>{name}).at(name);
     }
 
 private:
@@ -106,21 +128,6 @@ private:
         return parse_raw_debug_info(raw);
     }
 
-    std::string build_download_path() {
-        if (!valid_) {
-            return {};
-        }
-
-        std::stringstream ss;
-        ss << std::hex << std::uppercase;
-
-        ss << server_;
-        if (server_.back() != '/') {
-            ss << '/';
-        }
-        ss << info_.name << '/' << info_.guid << info_.age << '/' << info_.name;
-        return ss.str();
-    }
 };
 
 #endif //QUERY_PDB_CLIENT_QUERY_PDB_H

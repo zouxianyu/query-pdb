@@ -1,8 +1,17 @@
+#include <iostream>
 #include "query_pdb.h"
 
 int main() {
-    qpdb::default_server() = "http://msdl.microsoft.com/download/symbols/";
-    qpdb pdb(R"(C:\Windows\System32\ntoskrnl.exe)");
-    pdb.test();
+    qpdb::set_default_server("http://localhost:8080/");
+
+    try {
+        qpdb pdb(R"(D:\ntoskrnl.exe)");
+        int64_t offset = pdb.get_symbol("KdpStub");
+        std::cout << "KdpStub: " << std::hex << offset << std::endl;
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
+
     return 0;
 }
