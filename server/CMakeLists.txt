@@ -4,7 +4,7 @@ add_executable(
         downloader.cpp
         pdb_parser.cpp
         pdb_helper.cpp
-        Examples/ExampleMemoryMappedFile.cpp
+        ExampleMemoryMappedFile.cpp
 )
 
 set_target_properties(
