@@ -30,8 +30,8 @@ bool downloader::valid() const {
 }
 
 bool downloader::download(const std::string &name, const std::string &guid, uint32_t age) {
-    std::string relative_path = make_path(name, guid, age);
-    auto path = std::filesystem::path(path_).append(relative_path);
+    std::string relative_path = get_relative_path_str(name, guid, age);
+    auto path = get_path(name, guid, age);
     spdlog::info("lookup pdb, path: {}", relative_path);
 
     if (std::filesystem::exists(path)) {
@@ -42,11 +42,19 @@ bool downloader::download(const std::string &name, const std::string &guid, uint
     return download_impl(relative_path);
 }
 
-std::string downloader::make_path(const std::string &name, const std::string &guid, uint32_t age) {
+std::string
+downloader::get_relative_path_str(const std::string &name, const std::string &guid, uint32_t age) {
     std::stringstream ss;
     ss << std::hex << std::uppercase;
     ss << name << '/' << guid << age << '/' << name;
     return ss.str();
+}
+
+std::filesystem::path
+downloader::get_path(const std::string &name, const std::string &guid, uint32_t age) {
+    std::string relative_path = get_relative_path_str(name, guid, age);
+    auto path = std::filesystem::path(path_).append(relative_path);
+    return path;
 }
 
 bool downloader::download_impl(const std::string &relative_path) {
