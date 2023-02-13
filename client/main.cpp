@@ -20,12 +20,10 @@ int main() {
 
         {
             // method 2
-            auto offsets = pdb.get_symbol(
-                    std::set<std::string>{
-                            "KdpStub",
-                            "MmAccessFault"
-                    }
-            );
+            auto offsets = pdb.get_symbol(std::set<std::string>{
+                    "KdpStub",
+                    "MmAccessFault"
+            });
 
             std::cout << offsets["KdpStub"] << std::endl;
             std::cout << offsets["MmAccessFault"] << std::endl;
