@@ -16,9 +16,15 @@ int main(int argc, char *argv[]) {
             ("path", "download path", cxxopts::value<std::string>()->default_value("save"))
             ("server", "download server", cxxopts::value<std::string>()->default_value(
                     "http://msdl.microsoft.com/download/symbols/"))
-            ("log", "write log to file", cxxopts::value<bool>()->default_value("false"));
+            ("log", "write log to file", cxxopts::value<bool>()->default_value("false"))
+            ("h,help", "print help");
 
     auto parse_result = option_parser.parse(argc, argv);
+
+    if (parse_result.count("help")) {
+        std::cout << option_parser.help() << std::endl;
+        return 0;
+    }
 
     const auto ip = parse_result["ip"].as<std::string>();
     const auto port = parse_result["port"].as<uint16_t>();
