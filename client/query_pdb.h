@@ -14,8 +14,7 @@
 class qpdb {
 public:
     qpdb(const std::string &path, std::string server)
-            : pe_(nullptr),
-              size_(0),
+            : pe_(),
               server_(std::move(server)),
               info_(),
               valid_(false) {
@@ -29,12 +28,9 @@ public:
             return;
         }
 
-        f.seekg(0, std::ios::end);
-        size_ = static_cast<std::size_t>(f.tellg());
-        f.seekg(0, std::ios::beg);
-        pe_ = std::unique_ptr<std::uint8_t[]>(new std::uint8_t[size_]);
-        f.read(reinterpret_cast<char *>(pe_.get()),
-               static_cast<std::streamsize>(size_));
+        std::ostringstream ss;
+        ss << f.rdbuf();
+        pe_ = ss.str();
 
         info_ = get_pdb_path_info();
         if (!info_.name.empty() && !info_.guid.empty()) {
@@ -92,8 +88,7 @@ private:
         char pdb_file_name[1];
     };
 
-    std::unique_ptr<std::uint8_t[]> pe_;
-    std::size_t size_;
+    std::string pe_;
     std::string server_;
     pdb_path_info info_;
     bool valid_;
@@ -117,13 +112,13 @@ private:
     }
 
     pdb_path_info get_pdb_path_info() {
-        auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER *>(pe_.get());
-        auto nt_header = reinterpret_cast<IMAGE_NT_HEADERS *>(pe_.get() + dos_header->e_lfanew);
+        auto p = const_cast<char *>(pe_.c_str());
+        auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER *>(p);
+        auto nt_header = reinterpret_cast<IMAGE_NT_HEADERS *>(p + dos_header->e_lfanew);
         IMAGE_DATA_DIRECTORY *data_directory = nt_header->OptionalHeader.DataDirectory;
         auto debug_directory = reinterpret_cast<IMAGE_DEBUG_DIRECTORY *>(
-                pe_.get() + data_directory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
-        auto raw = reinterpret_cast<raw_debug_info *>(
-                pe_.get() + debug_directory->AddressOfRawData);
+                p + data_directory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
+        auto raw = reinterpret_cast<raw_debug_info *>(p + debug_directory->AddressOfRawData);
 
         return parse_raw_debug_info(raw);
     }
