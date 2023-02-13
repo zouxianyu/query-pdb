@@ -13,6 +13,18 @@
 
 class qpdb {
 public:
+    struct field_info {
+        int64_t offset;
+        int64_t bitfield_offset;
+
+        static field_info from_map(const std::map<std::string, int64_t> &m) {
+            field_info info{};
+            info.offset = m.at("offset");
+            info.bitfield_offset = m.at("bitfield_offset");
+            return info;
+        }
+    };
+
     qpdb(const std::string &path, std::string server)
             : pe_(),
               server_(std::move(server)),
@@ -72,6 +84,80 @@ public:
 
     int64_t get_symbol(const std::string &name) const {
         return get_symbol(std::set<std::string>{name}).at(name);
+    }
+
+    std::map<std::string, std::map<std::string, field_info>>
+    get_struct(const std::map<std::string, std::set<std::string>> &names) const {
+        if (!valid_) {
+            throw std::runtime_error("invalid file, cannot get pdb info");
+        }
+
+        nlohmann::json j;
+        j["name"] = info_.name;
+        j["guid"] = info_.guid;
+        j["age"] = info_.age;
+        j["query"] = names;
+
+        httplib::Client client(server_);
+        auto res = client.Post("/struct", j.dump(), "application/json");
+        if (!res || res->status != 200) {
+            throw std::runtime_error("request failed");
+        }
+
+        auto result = nlohmann::json::parse(res->body)
+                .get<std::map<std::string, std::map<std::string, std::map<std::string, int64_t>>>>();
+
+        std::map<std::string, std::map<std::string, field_info>> field_info_map;
+        for (const auto &struct_info: result) {
+            field_info_map[struct_info.first] = {};
+            for (const auto &field_info: struct_info.second) {
+                field_info_map[struct_info.first][field_info.first] =
+                        field_info::from_map(field_info.second);
+            }
+        }
+        return field_info_map;
+    }
+
+    std::map<std::string, field_info>
+    get_struct(const std::string &name, const std::set<std::string> &fields) const {
+        return get_struct(std::map<std::string, std::set<std::string>>{{name, fields}})
+                .at(name);
+    }
+
+    field_info get_struct(const std::string &name, const std::string &field) const {
+        return get_struct(name, std::set<std::string>{field}).at(field);
+    }
+
+    std::map<std::string, std::map<std::string, int64_t>>
+    get_enum(const std::map<std::string, std::set<std::string>> &names) const {
+        if (!valid_) {
+            throw std::runtime_error("invalid file, cannot get pdb info");
+        }
+
+        nlohmann::json j;
+        j["name"] = info_.name;
+        j["guid"] = info_.guid;
+        j["age"] = info_.age;
+        j["query"] = names;
+
+        httplib::Client client(server_);
+        auto res = client.Post("/enum", j.dump(), "application/json");
+        if (!res || res->status != 200) {
+            throw std::runtime_error("request failed");
+        }
+
+        return nlohmann::json::parse(res->body)
+                .get<std::map<std::string, std::map<std::string, int64_t>>>();
+    }
+
+    std::map<std::string, int64_t>
+    get_enum(const std::string &name, const std::set<std::string> &keys) const {
+        return get_enum(std::map<std::string, std::set<std::string>>{{name, keys}})
+                .at(name);
+    }
+
+    int64_t get_enum(const std::string &name, const std::string &key) const {
+        return get_enum(name, std::set<std::string>{key}).at(key);
     }
 
 private:
