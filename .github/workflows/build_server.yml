@@ -3,6 +3,7 @@ name: build query-pdb server
 on:
   push:
     branches: [ master ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ master ]
 
@@ -34,6 +35,16 @@ jobs:
           name: query-pdb-server-${{matrix.os}}
           path: ${{github.workspace}}/build/server/query_pdb_server
 
+      - name: Make Tarball
+        if: startsWith(github.ref, 'refs/tags/')
+        run: tar -czvf query-pdb-server-${{matrix.os}}.tar.gz -C ${{github.workspace}}/build/server query_pdb_server
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{github.workspace}}/build/server/query-pdb-server-${{matrix.os}}.tar.gz
+
   build-on-windows:
     strategy:
       matrix:
@@ -62,3 +73,13 @@ jobs:
         with:
           name: query-pdb-server-windows-${{matrix.arch}}
           path: ${{github.workspace}}/build/server/query_pdb_server.exe
+
+      - name: Make Zip
+        if: startsWith(github.ref, 'refs/tags/')
+        run: 7z a query-pdb-server-windows-${{matrix.arch}}.zip ${{github.workspace}}/build/server/query_pdb_server.exe
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{github.workspace}}/build/server/query-pdb-server-windows-${{matrix.arch}}.zip
