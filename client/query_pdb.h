@@ -111,14 +111,40 @@ private:
         return result;
     }
 
+    static uint32_t rva_to_offset(char *pe, uint32_t rva) {
+        auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER *>(pe);
+        auto nt_header = reinterpret_cast<IMAGE_NT_HEADERS *>(pe + dos_header->e_lfanew);
+        auto section_header = IMAGE_FIRST_SECTION(nt_header);
+        for (int i = 0; i < nt_header->FileHeader.NumberOfSections; i++) {
+            if (rva >= section_header[i].VirtualAddress &&
+                rva < section_header[i].VirtualAddress + section_header[i].Misc.VirtualSize) {
+                return rva - section_header[i].VirtualAddress + section_header[i].PointerToRawData;
+            }
+        }
+        return 0;
+    }
+
     pdb_path_info get_pdb_path_info() {
         auto p = const_cast<char *>(pe_.c_str());
         auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER *>(p);
         auto nt_header = reinterpret_cast<IMAGE_NT_HEADERS *>(p + dos_header->e_lfanew);
-        IMAGE_DATA_DIRECTORY *data_directory = nt_header->OptionalHeader.DataDirectory;
+
+        IMAGE_DATA_DIRECTORY *data_directory;
+        switch (nt_header->FileHeader.Machine) {
+            case IMAGE_FILE_MACHINE_I386:
+                data_directory = reinterpret_cast<IMAGE_NT_HEADERS32 *>(nt_header)->
+                        OptionalHeader.DataDirectory;
+                break;
+            case IMAGE_FILE_MACHINE_AMD64:
+                data_directory = reinterpret_cast<IMAGE_NT_HEADERS64 *>(nt_header)->
+                        OptionalHeader.DataDirectory;
+                break;
+            default:
+                throw std::runtime_error("unsupported machine type");
+        }
         auto debug_directory = reinterpret_cast<IMAGE_DEBUG_DIRECTORY *>(
-                p + data_directory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress);
-        auto raw = reinterpret_cast<raw_debug_info *>(p + debug_directory->AddressOfRawData);
+                p + rva_to_offset(p, data_directory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress));
+        auto raw = reinterpret_cast<raw_debug_info *>(p + debug_directory->PointerToRawData);
 
         return parse_raw_debug_info(raw);
     }

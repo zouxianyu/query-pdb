@@ -2,7 +2,7 @@
 #include "query_pdb.h"
 
 int main() {
-    qpdb::set_default_server("http://localhost:8080/");
+    qpdb::set_default_server("http://localhost:8080");
 
     try {
         qpdb pdb(R"(D:\ntoskrnl.exe)");
