@@ -10,7 +10,7 @@ RUN apk add --no-cache \
     g++ \
     git \
     cmake \
-    supervisor \
+    supervisor
 
 COPY . /query-pdb/
 
