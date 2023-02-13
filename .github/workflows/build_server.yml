@@ -43,6 +43,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
+          draft: true
           files: query-pdb-server-${{matrix.os}}.tar.gz
 
   build-on-windows:
@@ -82,4 +83,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
+          draft: true
           files: query-pdb-server-windows-${{matrix.arch}}.zip
