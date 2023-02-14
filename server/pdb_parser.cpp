@@ -11,42 +11,24 @@ pdb_parser::pdb_parser(const std::string &filename)
         : file_(MemoryMappedFile::Open(filename.c_str())) {}
 
 std::map<std::string, int64_t> pdb_parser::get_symbols(const std::set<std::string> &names) const {
-    // sanity check
-    if (!file_.get().baseAddress ||
-        PDB::ValidateFile(file_.get().baseAddress) != PDB::ErrorCode::Success) {
-        return {};
-    }
+    return call_with_pdb_stream(get_symbols_impl, names);
+}
 
-    const PDB::RawFile raw_file = PDB::CreateRawFile(file_.get().baseAddress);
-    if (PDB::HasValidDBIStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
+std::map<std::string, std::map<std::string, field_info>>
+pdb_parser::get_struct(const std::map<std::string, std::set<std::string>> &names) const {
+    return call_with_pdb_stream(get_struct_impl, names);
+}
 
-    const PDB::InfoStream info_stream(raw_file);
-    if (info_stream.UsesDebugFastLink()) {
-        return {};
-    }
-
-    const PDB::DBIStream dbi_stream = PDB::CreateDBIStream(raw_file);
-    if (dbi_stream.HasValidImageSectionStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidPublicSymbolStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidGlobalSymbolStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidSectionContributionStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    const PDB::TPIStream tpi_stream = PDB::CreateTPIStream(raw_file);
-    if (PDB::HasValidTPIStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    return get_symbols_impl(raw_file, dbi_stream, names);
+std::map<std::string, std::map<std::string, int64_t>>
+pdb_parser::get_enum(const std::map<std::string, std::set<std::string>> &names) const {
+    return call_with_pdb_stream(get_enum_impl, names);
 }
 
 std::map<std::string, int64_t>
 pdb_parser::get_symbols_impl(
         const PDB::RawFile &raw_file,
         const PDB::DBIStream &dbi_stream,
+        const PDB::TPIStream &tpi_stream,
         const std::set<std::string> &names
 ) {
     const PDB::ImageSectionStream image_section_stream =
@@ -236,75 +218,9 @@ pdb_parser::get_symbols_impl(
 }
 
 std::map<std::string, std::map<std::string, field_info>>
-pdb_parser::get_struct(const std::map<std::string, std::set<std::string>> &names) const {
-    // sanity check
-    if (!file_.get().baseAddress ||
-        PDB::ValidateFile(file_.get().baseAddress) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    const PDB::RawFile raw_file = PDB::CreateRawFile(file_.get().baseAddress);
-    if (PDB::HasValidDBIStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    const PDB::InfoStream info_stream(raw_file);
-    if (info_stream.UsesDebugFastLink()) {
-        return {};
-    }
-
-    const PDB::DBIStream dbi_stream = PDB::CreateDBIStream(raw_file);
-    if (dbi_stream.HasValidImageSectionStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidPublicSymbolStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidGlobalSymbolStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidSectionContributionStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    const PDB::TPIStream tpi_stream = PDB::CreateTPIStream(raw_file);
-    if (PDB::HasValidTPIStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    return get_struct_impl(tpi_stream, names);
-}
-
-std::map<std::string, std::map<std::string, int64_t>>
-pdb_parser::get_enum(const std::map<std::string, std::set<std::string>> &names) const {
-    // sanity check
-    if (!file_.get().baseAddress ||
-        PDB::ValidateFile(file_.get().baseAddress) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    const PDB::RawFile raw_file = PDB::CreateRawFile(file_.get().baseAddress);
-    if (PDB::HasValidDBIStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    const PDB::InfoStream info_stream(raw_file);
-    if (info_stream.UsesDebugFastLink()) {
-        return {};
-    }
-
-    const PDB::DBIStream dbi_stream = PDB::CreateDBIStream(raw_file);
-    if (dbi_stream.HasValidImageSectionStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidPublicSymbolStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidGlobalSymbolStream(raw_file) != PDB::ErrorCode::Success ||
-        dbi_stream.HasValidSectionContributionStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    const PDB::TPIStream tpi_stream = PDB::CreateTPIStream(raw_file);
-    if (PDB::HasValidTPIStream(raw_file) != PDB::ErrorCode::Success) {
-        return {};
-    }
-
-    return get_enum_impl(tpi_stream, names);
-}
-
-std::map<std::string, std::map<std::string, field_info>>
 pdb_parser::get_struct_impl(
+        const PDB::RawFile &raw_file,
+        const PDB::DBIStream &dbi_stream,
         const PDB::TPIStream &tpi_stream,
         const std::map<std::string, std::set<std::string>> &names
 ) {
@@ -454,6 +370,8 @@ pdb_parser::get_struct_single(
 
 std::map<std::string, std::map<std::string, int64_t>>
 pdb_parser::get_enum_impl(
+        const PDB::RawFile &raw_file,
+        const PDB::DBIStream &dbi_stream,
         const PDB::TPIStream &tpi_stream,
         const std::map<std::string, std::set<std::string>> &names
 ) {

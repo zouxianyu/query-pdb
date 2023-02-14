@@ -43,11 +43,14 @@ private:
     static std::map<std::string, int64_t> get_symbols_impl(
             const PDB::RawFile &raw_file,
             const PDB::DBIStream &dbi_stream,
+            const PDB::TPIStream &tpi_stream,
             const std::set<std::string> &names
     );
 
     static std::map<std::string, std::map<std::string, field_info>>
     get_struct_impl(
+            const PDB::RawFile &raw_file,
+            const PDB::DBIStream &dbi_stream,
             const PDB::TPIStream &tpi_stream,
             const std::map<std::string, std::set<std::string>> &names
     );
@@ -61,6 +64,8 @@ private:
 
     static std::map<std::string, std::map<std::string, int64_t>>
     get_enum_impl(
+            const PDB::RawFile &raw_file,
+            const PDB::DBIStream &dbi_stream,
             const PDB::TPIStream &tpi_stream,
             const std::map<std::string, std::set<std::string>> &names
     );
@@ -71,6 +76,41 @@ private:
             uint8_t underlying_type_size,
             const std::set<std::string> &names
     );
+
+    template<typename F, typename ...Args>
+    auto call_with_pdb_stream(F f, Args &&...args) const {
+        // sanity check
+        if (!file_.get().baseAddress ||
+            PDB::ValidateFile(file_.get().baseAddress) != PDB::ErrorCode::Success) {
+            throw std::runtime_error("invalid PDB file");
+        }
+
+        const PDB::RawFile raw_file = PDB::CreateRawFile(file_.get().baseAddress);
+        if (PDB::HasValidDBIStream(raw_file) != PDB::ErrorCode::Success) {
+            throw std::runtime_error("invalid DBI stream");
+        }
+
+        const PDB::InfoStream info_stream(raw_file);
+        if (info_stream.UsesDebugFastLink()) {
+            throw std::runtime_error("invalid info stream");
+        }
+
+        const PDB::DBIStream dbi_stream = PDB::CreateDBIStream(raw_file);
+        if (dbi_stream.HasValidImageSectionStream(raw_file) != PDB::ErrorCode::Success ||
+            dbi_stream.HasValidPublicSymbolStream(raw_file) != PDB::ErrorCode::Success ||
+            dbi_stream.HasValidGlobalSymbolStream(raw_file) != PDB::ErrorCode::Success ||
+            dbi_stream.HasValidSectionContributionStream(raw_file) != PDB::ErrorCode::Success) {
+            throw std::runtime_error("invalid DBI streams");
+        }
+
+        const PDB::TPIStream tpi_stream = PDB::CreateTPIStream(raw_file);
+        if (PDB::HasValidTPIStream(raw_file) != PDB::ErrorCode::Success) {
+            throw std::runtime_error("invalid TPI stream");
+        }
+
+        return f(raw_file, dbi_stream, tpi_stream, std::forward<Args>(args)...);
+    }
+
 };
 
 #endif //QUERY_PDB_SERVER_PDB_PARSER_H
