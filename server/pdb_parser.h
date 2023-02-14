@@ -7,6 +7,7 @@
 #include <map>
 #include <PDB.h>
 #include <PDB_RawFile.h>
+#include <PDB_InfoStream.h>
 #include <PDB_DBIStream.h>
 #include <PDB_TPIStream.h>
 #include "handle_guard.h"
