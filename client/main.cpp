@@ -56,7 +56,7 @@ int main() {
 
         {
             // method 3
-            auto structs = pdb.get_struct(std::map<std::string, std::set<std::string>>{
+            auto structs = pdb.get_struct({
                     {"_KPROCESS", {
                             "DirectoryTableBase",
                             "DisableQuantum"
@@ -95,7 +95,7 @@ int main() {
 
         {
             // method 3
-            auto enums = pdb.get_enum(std::map<std::string, std::set<std::string>>{
+            auto enums = pdb.get_enum({
                     {"_POOL_TYPE",        {
                             "PagedPool",
                             "NonPagedPool"
