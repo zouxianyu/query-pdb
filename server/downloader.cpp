@@ -66,6 +66,7 @@ bool downloader::download_impl(const std::string &relative_path) {
 
     std::string buf;
     httplib::Client client(server_split_.first);
+    client.set_follow_location(true);
     auto res = client.Get(server_split_.second + relative_path);
     if (!res || res->status != 200) {
         spdlog::error("failed to download pdb, path: {}", relative_path);

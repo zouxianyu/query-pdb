@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
             ("port", "port", cxxopts::value<uint16_t>()->default_value("8080"))
             ("path", "download path", cxxopts::value<std::string>()->default_value("save"))
             ("server", "download server", cxxopts::value<std::string>()->default_value(
-                    "http://msdl.microsoft.com/download/symbols/"))
+                    "https://msdl.microsoft.com/download/symbols/"))
             ("log", "write log to file", cxxopts::value<bool>()->default_value("false"))
             ("h,help", "print help");
 
