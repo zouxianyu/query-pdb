@@ -76,11 +76,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: query-pdb-server-windows-${{matrix.arch}}
-          path: ${{github.workspace}}/build/server/query_pdb_server.exe
+          path: |
+            ${{github.workspace}}/build/server/query_pdb_server.exe
+            ${{github.workspace}}/build/server/*.dll
 
       - name: Make Zip
         if: startsWith(github.ref, 'refs/tags/')
-        run: 7z a query-pdb-server-windows-${{matrix.arch}}.zip ${{github.workspace}}/build/server/query_pdb_server.exe
+        run: 7z a query-pdb-server-windows-${{matrix.arch}}.zip ${{github.workspace}}/build/server/query_pdb_server.exe ${{github.workspace}}/build/server/*.dll
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
