@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <regex>
 #include <httplib.h>
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 #include "downloader.h"
 
 downloader::downloader(std::string path, std::string server)
