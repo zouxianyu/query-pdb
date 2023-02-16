@@ -3,9 +3,9 @@
     <img src="https://img.shields.io/github/license/zouxianyu/query-pdb">
 </p>
 
-# pdb-query
+# query-pdb
 
-**pdb-query** is a server-side software for parsing PDB files. The software provides PDB online parsing service, the client only needs to send a request to the server to get the required structures and enumerations, and no longer needs to download the complete PDB file.
+**query-pdb** is a server-side software for parsing PDB files. The software provides PDB online parsing service, the client only needs to send a request to the server to get the required structures and enumerations, and no longer needs to download the complete PDB file.
 
 ![design](rsrc/design.png)
 
