@@ -25,8 +25,9 @@ target_include_directories(
 # on Windows, we use the prebuilt library
 # on Linux, we use the library installed by system package manager
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    message("Windows")
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(OPENSSL_ROOT_DIR thirdparty/openssl/x64)
+        set(OPENSSL_ROOT_DIR ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x64)
         add_custom_command(
                 TARGET query_pdb_server
                 POST_BUILD
@@ -42,7 +43,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 ${CMAKE_BINARY_DIR}/server
         )
     else ()
-        set(OPENSSL_ROOT_DIR thirdparty/openssl/x86)
+        set(OPENSSL_ROOT_DIR ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x86)
         add_custom_command(
                 TARGET query_pdb_server
                 POST_BUILD
