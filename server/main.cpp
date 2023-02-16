@@ -1,5 +1,6 @@
 #include <utility>
 #include <set>
+#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 #include <cxxopts.hpp>
 #include <nlohmann/json.hpp>

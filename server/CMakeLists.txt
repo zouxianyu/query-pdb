@@ -1,5 +1,3 @@
-add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
-
 add_executable(
         query_pdb_server
         main.cpp

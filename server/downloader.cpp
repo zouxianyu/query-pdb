@@ -1,6 +1,7 @@
 #include <sstream>
 #include <filesystem>
 #include <regex>
+#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 #include <spdlog/spdlog.h>
 #include "downloader.h"
