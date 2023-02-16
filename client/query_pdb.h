@@ -25,11 +25,12 @@ public:
         }
     };
 
-    qpdb(const std::string &path, std::string server)
+    qpdb(const std::string &path, std::string server = default_server(), uint32_t timeout = 180)
             : pe_(),
               server_(std::move(server)),
               info_(),
-              valid_(false) {
+              valid_(false),
+              timeout_(timeout) {
 
         if (server_.empty()) {
             return;
@@ -49,9 +50,6 @@ public:
             valid_ = true;
         }
     }
-
-    explicit qpdb(const std::string &path)
-            : qpdb(path, default_server()) {}
 
     static std::string &default_server() {
         static std::string default_server_;
@@ -74,6 +72,7 @@ public:
         j["query"] = names;
 
         httplib::Client client(server_);
+        client.set_read_timeout(timeout_);
         auto res = client.Post("/symbol", j.dump(), "application/json");
         if (!res || res->status != 200) {
             throw std::runtime_error("request failed");
@@ -99,6 +98,7 @@ public:
         j["query"] = names;
 
         httplib::Client client(server_);
+        client.set_read_timeout(timeout_);
         auto res = client.Post("/struct", j.dump(), "application/json");
         if (!res || res->status != 200) {
             throw std::runtime_error("request failed");
@@ -141,6 +141,7 @@ public:
         j["query"] = names;
 
         httplib::Client client(server_);
+        client.set_read_timeout(timeout_);
         auto res = client.Post("/enum", j.dump(), "application/json");
         if (!res || res->status != 200) {
             throw std::runtime_error("request failed");
@@ -178,6 +179,7 @@ private:
     std::string server_;
     pdb_path_info info_;
     bool valid_;
+    uint32_t timeout_;
 
     static pdb_path_info parse_raw_debug_info(raw_debug_info *raw) {
         pdb_path_info result;
