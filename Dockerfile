@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     git \
     cmake \
     supervisor \
-    openssl
+    openssl-dev
 
 COPY . /query-pdb/
 
