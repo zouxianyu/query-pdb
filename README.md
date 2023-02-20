@@ -263,6 +263,53 @@ In addition to that, if you want to use `query_pdb.h` in your project you need t
 
 ![vs_include_dir](rsrc/vs_include_dir.png)
 
+## Send Request in Kernel Mode
+
+The project provides an [example](client-drv/) of sending requests directly in kernel mode. I don't want to add too much code to the kernel layer because it might introduce additional instability, but sometimes it's more convenient to send a request directly in the kernel than to get the data in the application and send it to the driver.
+
+This example is also written in C++ and it is based on the [ucxxrt](https://github.com/MiroKaku/ucxxrt) runtime library. With ucxxrt, we can write code in the kernel mode just like in the user mode.
+
+Some codes.
+
+```c++
+try {
+    kqpdb::set_default_server("http://39.105.177.215:9025/");
+    kqpdb pdb("\\SystemRoot\\System32\\ntoskrnl.exe");
+
+    ////////////////////////////////////////////////////////////////////////
+    // query global offset
+    {
+        // method 1
+        auto offset = pdb.get_symbol("KdpStub");
+        DbgPrint("KdpStub: %x\n", offset);
+    }
+
+    ...
+
+} catch (std::exception &e) {
+    DbgPrint("[DriverMain] exception: %s\n", e.what());
+} catch (...) {
+    DbgPrint("[DriverMain] exception\n");
+}
+```
+
+Possible outputs.
+
+```
+KdpStub: 2deb54
+KdpStub: 2deb54
+MmAccessFault: 2a4970
+DirectoryTableBase: 28, 0
+DirectoryTableBase: 28, 0
+DisableQuantum: 278, 2
+DirectoryTableBase: 28, 0
+PagedPool: 1
+PagedPool: 1
+NonPagedPool: 0
+PagedPool: 1
+[DriverMain] start successfully
+```
+
 ## Run In Docker
 
 On servers, to provide isolation, services typically run in Docker. The `Dockerfile` is provided in the root of the repository for building Docker containers and `supervisord.conf` for configuring process monitoring.
@@ -301,3 +348,6 @@ docker run -p 80:8080 -itd zouxianyu/query-pdb-server
 - [spdlog](https://github.com/gabime/spdlog): Fast C++ logging library.
 - [pdb_proxy](https://github.com/szdyg/pdb_proxy): Microsoft PDB Proxy Server
 - [dwm-screen-shot](https://github.com/lainswork/dwm-screen-shot): Provides ideas for using raw_pdb to parse PDB files
+- [ucxxrt](https://github.com/MiroKaku/ucxxrt): The Universal C++ RunTime library, supporting kernel-mode C++ exception-handler and STL.
+- [KSOCKET](https://github.com/wbenny/KSOCKET): KSOCKET provides a very basic example how to make a network connections in the Windows Driver by using WSK
+- [httpparser](https://github.com/nekipelov/httpparser): HTTP request, response and urls parser
