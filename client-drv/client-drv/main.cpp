@@ -23,7 +23,7 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
         {
             // method 1
             auto offset = pdb.get_symbol("KdpStub");
-            DbgPrint("KdpStub: %x\n", offset);
+            DbgPrint("KdpStub: %llx\n", offset);
         }
 
         {
@@ -33,8 +33,8 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
                     "MmAccessFault"
             });
 
-            DbgPrint("KdpStub: %x\n", offsets["KdpStub"]);
-            DbgPrint("MmAccessFault: %x\n", offsets["MmAccessFault"]);
+            DbgPrint("KdpStub: %llx\n", offsets["KdpStub"]);
+            DbgPrint("MmAccessFault: %llx\n", offsets["MmAccessFault"]);
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
             // method 1
             auto field = pdb.get_struct("_KPROCESS", "DirectoryTableBase");
 
-            DbgPrint("DirectoryTableBase: %x, %x\n", field.offset, field.bitfield_offset);
+            DbgPrint("DirectoryTableBase: %llx, %llx\n", field.offset, field.bitfield_offset);
         }
 
         {
@@ -55,10 +55,10 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
                     }
             );
 
-            DbgPrint("DirectoryTableBase: %x, %x\n", fields["DirectoryTableBase"].offset,
+            DbgPrint("DirectoryTableBase: %llx, %llx\n", fields["DirectoryTableBase"].offset,
                      fields["DirectoryTableBase"].bitfield_offset);
 
-            DbgPrint("DisableQuantum: %x, %x\n", fields["DisableQuantum"].offset,
+            DbgPrint("DisableQuantum: %llx, %llx\n", fields["DisableQuantum"].offset,
                      fields["DisableQuantum"].bitfield_offset);
         }
 
@@ -74,7 +74,7 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
                 }}
             });
 
-            DbgPrint("DirectoryTableBase: %x, %x\n",
+            DbgPrint("DirectoryTableBase: %llx, %llx\n",
                      structs["_KPROCESS"]["DirectoryTableBase"].offset,
                      structs["_KPROCESS"]["DirectoryTableBase"].bitfield_offset);
         }
@@ -86,7 +86,7 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
             // method 1
             auto value = pdb.get_enum("_POOL_TYPE", "PagedPool");
 
-            DbgPrint("PagedPool: %x\n", value);
+            DbgPrint("PagedPool: %llx\n", value);
         }
 
         {
@@ -98,8 +98,8 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
                     }
             );
 
-            DbgPrint("PagedPool: %x\n", values["PagedPool"]);
-            DbgPrint("NonPagedPool: %x\n", values["NonPagedPool"]);
+            DbgPrint("PagedPool: %llx\n", values["PagedPool"]);
+            DbgPrint("NonPagedPool: %llx\n", values["NonPagedPool"]);
         }
 
         {
@@ -114,7 +114,7 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
                 }}
             });
 
-            DbgPrint("PagedPool: %x\n", enums["_POOL_TYPE"]["PagedPool"]);
+            DbgPrint("PagedPool: %llx\n", enums["_POOL_TYPE"]["PagedPool"]);
         }
 
     } catch (std::exception &e) {
