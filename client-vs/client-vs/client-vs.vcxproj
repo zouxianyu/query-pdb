@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{0f874445-743a-42b5-abe3-85551c5d6cf0}</ProjectGuid>
+    <ProjectGuid>{6ac8eed6-30dc-4996-ac29-1f80d3caa81d}</ProjectGuid>
     <RootNamespace>clientvs</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -70,6 +70,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)\..\thirdparty\cpp-httplib;$(SolutionDir)\..\thirdparty\nlohmann_json\single_include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir)\..\thirdparty\cpp-httplib;$(SolutionDir)\..\thirdparty\nlohmann_json\single_include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)\..\thirdparty\cpp-httplib;$(SolutionDir)\..\thirdparty\nlohmann_json\single_include;$(IncludePath)</IncludePath>
   </PropertyGroup>
@@ -133,10 +139,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\client\main.cpp" />
+    <ClInclude Include="..\..\client\query_pdb.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\client\query_pdb.h" />
+    <ClCompile Include="..\..\client\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
