@@ -25,7 +25,8 @@ public:
         }
     };
 
-    qpdb(const std::string &path, std::string server = default_server(), uint32_t timeout = 180)
+    explicit qpdb(const std::string &path, std::string server = default_server(),
+                  uint32_t timeout = 180)
             : pe_(),
               server_(std::move(server)),
               info_(),
