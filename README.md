@@ -233,6 +233,8 @@ just do it yourself...
 
 ## Build
 
+### CMake
+
 The software is based on the CMake build system. If your computer does not have CMake, please install it. You can use the MSVC compiler on Windows and the gcc compiler on Linux.
 
 Typical build commands are as follows.
@@ -244,6 +246,22 @@ cmake --build build --target query_pdb_server --config Release
 ```
 
 If you wish to specify a compiler, or add cpp files, please refer to the CMake manual.
+
+### Visual Studio
+
+Since there are many Windows programmers who use Visual Studio for development, the software also provides a VS-based client project for programmers to easily apply the project to their projects. The Visual Studio solution is located in the `client-vs` folder in the root directory. Open the solution and you can compile and run the client application directly.
+
+The project can be seen in Visual Studio's Solution Explorer as containing the source file `main.cpp` and the header file `query_pdb.h`. You can refer to main.cpp to learn how to use the PDB query functions provided by the `query_pdb.h` header file.
+
+![vs_solution](rsrc/vs_solution.png)
+
+In addition to that, if you want to use `query_pdb.h` in your project you need to download and introduce the dependencies [nlohmann JSON](https://github.com/nlohmann/json) and [cpp-httplib](https://github.com/yhirose/cpp-httplib) for the header file `query_pdb.h` in the project property page.
+
+`Properties -> VC++ Directories -> Include Directories -> Edit -> New Line`
+
+![vs_property](rsrc/vs_property.png)
+
+![vs_include_dir](rsrc/vs_include_dir.png)
 
 ## Run In Docker
 
