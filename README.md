@@ -237,6 +237,10 @@ just do it yourself...
 
 The software is based on the CMake build system. If your computer does not have CMake, please install it. You can use the MSVC compiler on Windows and the gcc compiler on Linux.
 
+Require:
+1. CMake >= 3.24
+2. OpenSSL >= 1.1.1
+
 Typical build commands are as follows.
 
 ```bash
