@@ -25,7 +25,18 @@ target_include_directories(
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message("Windows")
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(OPENSSL_ROOT_DIR ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x64)
+        add_library(OpenSSL::SSL SHARED IMPORTED)
+        set_target_properties(
+                OpenSSL::SSL
+                PROPERTIES
+                IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x64/lib/libssl.lib
+        )
+        add_library(OpenSSL::Crypto SHARED IMPORTED)
+        set_target_properties(
+                OpenSSL::Crypto
+                PROPERTIES
+                IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x64/lib/libcrypto.lib
+        )
         add_custom_command(
                 TARGET query_pdb_server
                 POST_BUILD
@@ -41,7 +52,18 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 ${CMAKE_BINARY_DIR}/server
         )
     else ()
-        set(OPENSSL_ROOT_DIR ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x86)
+        add_library(OpenSSL::SSL SHARED IMPORTED)
+        set_target_properties(
+                OpenSSL::SSL
+                PROPERTIES
+                IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x86/lib/libssl.lib
+        )
+        add_library(OpenSSL::Crypto SHARED IMPORTED)
+        set_target_properties(
+                OpenSSL::Crypto
+                PROPERTIES
+                IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x86/lib/libcrypto.lib
+        )
         add_custom_command(
                 TARGET query_pdb_server
                 POST_BUILD
@@ -57,8 +79,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 ${CMAKE_BINARY_DIR}/server
         )
     endif ()
+else ()
+    find_package(OpenSSL 1.1.1 REQUIRED)
 endif ()
-find_package(OpenSSL 1.1.1 REQUIRED)
 
 target_link_libraries(
         query_pdb_server
