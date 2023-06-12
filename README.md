@@ -318,12 +318,6 @@ PagedPool: 1
 
 On servers, to provide isolation, services typically run in Docker. The `Dockerfile` is provided in the root of the repository for building Docker containers and `supervisord.conf` for configuring process monitoring.
 
-There is a line of code in the `Dockerfile` for modifying the download source, you can remove this line if you don't need it.
-
-```dockerfile
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-```
-
 You can modify `supervisord.conf` to customize the startup options.
 
 ```
@@ -333,7 +327,7 @@ autostart=true
 autorestart=true
 ```
 
-Once you have modified the `Dockerfile` and `supervisord.conf` files, you are ready to build the Docker container. You can use the following command to build and run.
+Once you have modified the  `supervisord.conf` , you are ready to build the Docker container. You can use the following command to build and run.
 
 If you do not understand the meaning of the following commands, please consult the Docker manual.
 
