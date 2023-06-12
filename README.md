@@ -327,14 +327,31 @@ autostart=true
 autorestart=true
 ```
 
-Once you have modified the  `supervisord.conf` , you are ready to build the Docker container. You can use the following command to build and run.
-
-If you do not understand the meaning of the following commands, please consult the Docker manual.
+Once you have modified the  `supervisord.conf` , you are ready to build the Docker container. You can use the following command to build it.
 
 ```
 cd query-pdb
 docker build -t zouxianyu/query-pdb-server .
-docker run -p 80:8080 -itd zouxianyu/query-pdb-server
+```
+
+If you don't like to build your own Docker images, I also provide already built Docker images on Docker Hub. You can download Docker images from Docker Hub with the following command. These images all save the cached PDB files in the `save` folder in the root directory, you can map this path to the host so that you can store these PDB files persistently. The mirror labeled `microsoft-latest` uses the official Microsoft PDB download server, and the mirror labeled `mirror-latest` uses the mirror server within China. 
+
+```
+docker pull zouxianyu/query-pdb-server:microsoft-latest
+```
+
+or
+
+```
+docker pull zouxianyu/query-pdb-server:mirror-latest
+```
+
+Then you can run the container with the following command.
+
+Note: `<your tag>` needs to be replaced with the tag of the Docker image you are using, such as `microsoft-latest` or `mirror-latest`. If you built your image yourself, you may need to replace it with `latest` or some other tag. If you do not understand the meaning of the following commands, please consult the Docker manual.
+
+```
+docker run -p 80:8080 -itd zouxianyu/query-pdb-server:<your tag>
 ```
 
 ## Credits
