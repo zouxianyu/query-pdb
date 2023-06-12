@@ -95,12 +95,10 @@ jobs:
     strategy:
       matrix:
         pdb-source:
-          - :
-            - name: microsoft
-            - url: https://msdl.microsoft.com/download/symbols/
-          - :
-            - name: mirror
-            - url: http://msdl.szdyg.cn/download/symbols/
+          - name: microsoft
+            url: https://msdl.microsoft.com/download/symbols/
+          - name: mirror
+            url: http://msdl.szdyg.cn/download/symbols/
 
     runs-on: ubuntu-22.04
 
