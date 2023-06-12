@@ -107,7 +107,7 @@ jobs:
 
       - name: Add PDB Source to supervisord.conf
         run: |
-          sed -i 's/\(command=.*\)$/\1 --server=${{matrix.pdb-source.url}}/' supervisord.conf
+          sed -i "s|\(command=.*\)|\1 --server=${{matrix.pdb-source.url}} --path=/save|" supervisord.conf
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
