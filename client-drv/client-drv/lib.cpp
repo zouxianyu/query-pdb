@@ -5,12 +5,12 @@
 EXTERN_C_START
 
 // for nlohmann::json
-// wrapper for RtlStringCchPrintfA
+// wrapper for _vsnprintf
 int snprintf(char *s, size_t n, const char *format, ...) {
     int ret;
     va_list arg;
     va_start(arg, format);
-    ret = RtlStringCchPrintfA(s, n, format, arg);
+    ret = _vsnprintf(s, n, format, arg);
     va_end(arg);
     return ret;
 }
