@@ -169,12 +169,20 @@ private:
         std::uint32_t age{};
     };
 
-    struct raw_debug_info {
-        DWORD signature;
-        GUID guid;
-        DWORD age;
-        char pdb_file_name[1];
-    };
+    typedef struct _CV_INFO_PDB70 {
+        DWORD      CvSignature;
+        GUID       Signature;
+        DWORD      Age;
+        char       PdbFileName[1];
+    } CV_INFO_PDB70;
+
+    typedef struct _CV_INFO_PDB20 {
+        DWORD      CvSignature;
+        DWORD      Offset;
+        DWORD      Signature;
+        DWORD      Age;
+        char       PdbFileName[1];
+    } CV_INFO_PDB20;
 
     std::string pe_;
     std::string server_;
@@ -182,21 +190,32 @@ private:
     bool valid_;
     uint32_t timeout_;
 
-    static pdb_path_info parse_raw_debug_info(raw_debug_info *raw) {
+    static pdb_path_info parse_raw_debug_info(char *raw) {
         pdb_path_info result;
-        result.name = raw->pdb_file_name;
-        result.age = raw->age;
-
         std::stringstream ss;
-        ss << std::hex << std::setfill('0') << std::uppercase;
-        ss << std::setw(8) << raw->guid.Data1;
-        ss << std::setw(4) << raw->guid.Data2;
-        ss << std::setw(4) << raw->guid.Data3;
-        for (unsigned char i: raw->guid.Data4) {
-            ss << std::setw(2) << static_cast<std::uint32_t>(i);
+        if (strncmp((const char*)raw, "RSDS", 4) == 0) {
+            //pdb 7.0
+            auto pdb7 = reinterpret_cast<CV_INFO_PDB70*>(raw);
+            GUID uuid = pdb7->Signature;
+            result.name = pdb7->PdbFileName;
+            result.age = pdb7->Age;
+            ss << std::hex << std::setfill('0') << std::uppercase;
+            ss << std::setw(8) << uuid.Data1;
+            ss << std::setw(4) << uuid.Data2;
+            ss << std::setw(4) << uuid.Data3;
+            for (uint8_t i : uuid.Data4) {
+                ss << std::setw(2) << static_cast<std::uint32_t>(i);
+            }
+            result.guid = ss.str();
+        } else if (strncmp((const char*)raw, "NB10", 4) == 0) {
+            //pdb 2.0
+            auto pdb2 = reinterpret_cast<_CV_INFO_PDB20*>(raw);
+            result.name = pdb2->PdbFileName;
+            result.age = pdb2->Age;
+            ss << std::hex << std::setfill('0') << std::uppercase;
+            ss << std::setw(8) << pdb2->Signature;
+            result.guid = ss.str();
         }
-        result.guid = ss.str();
-
         return result;
     }
 
@@ -233,7 +252,11 @@ private:
         }
         auto debug_directory = reinterpret_cast<IMAGE_DEBUG_DIRECTORY *>(
                 p + rva_to_offset(p, data_directory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress));
-        auto raw = reinterpret_cast<raw_debug_info *>(p + debug_directory->PointerToRawData);
+
+        if (debug_directory->Type != IMAGE_DEBUG_TYPE_CODEVIEW || debug_directory->SizeOfData == 0) {
+            return pdb_path_info();
+        }
+        auto raw = p + debug_directory->PointerToRawData;
 
         return parse_raw_debug_info(raw);
     }
