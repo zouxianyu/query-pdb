@@ -6,29 +6,23 @@
 #include <filesystem>
 
 class downloader {
-public:
-    downloader(std::string path, std::string server);
-
-    bool valid() const;
-
-    bool download(const std::string &name, const std::string &guid, uint32_t age);
-
-    std::filesystem::path
-    get_path(const std::string &name, const std::string &guid, uint32_t age);
 
 private:
-    bool valid_;
-    std::string path_;
-    std::string server_;
-    std::pair<std::string, std::string> server_split_;
-    std::mutex mutex_;
+    static std::string pdb_path_;
+    static std::string msdl_server_;
+    static std::pair<std::string, std::string> server_split_;
+public:
+    static void set_default_pdb_path(std::string dir_path);
+    static void set_default_pdb_server(std::string msdl_server);
 
-    static std::string
-    get_relative_path_str(const std::string &name, const std::string &guid, uint32_t age);
+public:
+    downloader();
+    bool download(const std::string &name, const std::string &guid, uint32_t age);
+    std::filesystem::path get_path(const std::string &name, const std::string &guid, uint32_t age);
 
+private:
+    static std::string get_relative_path_str(const std::string &name, const std::string &guid, uint32_t age);
     bool download_impl(const std::string &relative_path);
-
-    std::pair<std::string, std::string> split_server_name();
 };
 
 #endif //QUERY_PDB_SERVER_DOWNLOADER_H

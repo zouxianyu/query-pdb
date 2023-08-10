@@ -1,6 +1,5 @@
 #include <utility>
 #include <set>
-#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 #include <cxxopts.hpp>
 #include <nlohmann/json.hpp>
@@ -36,12 +35,8 @@ int main(int argc, char *argv[]) {
     if (log_to_file) {
         spdlog::set_default_logger(spdlog::daily_logger_mt("query-pdb", "server.log"));
     }
-
-    downloader storage(download_path, download_server);
-    if (!storage.valid()) {
-        spdlog::error("exit due to downloader invalid");
-        return 1;
-    }
+    downloader::set_default_pdb_path(download_path);
+    downloader::set_default_pdb_server(download_server);
 
     httplib::Server server;
     server.set_exception_handler([](const auto &req, auto &res, std::exception_ptr ep) {
@@ -70,7 +65,7 @@ int main(int argc, char *argv[]) {
     //         ...
     //     ]
     // }
-    server.Post("/symbol", [&storage](const httplib::Request &req, httplib::Response &res) {
+    server.Post("/symbol", [](const httplib::Request &req, httplib::Response &res) {
         spdlog::info("symbol request: {}", req.body);
         auto body = nlohmann::json::parse(req.body);
         auto name = body["name"].get<std::string>();
@@ -78,6 +73,7 @@ int main(int argc, char *argv[]) {
         auto age = body["age"].get<uint32_t>();
         auto query = body["query"].get<std::set<std::string>>();
 
+        downloader storage;
         // download pdb
         if (!storage.download(name, guid, age)) {
             throw std::runtime_error("download failed");
@@ -101,7 +97,7 @@ int main(int argc, char *argv[]) {
     //         ...
     //     }
     // }
-    server.Post("/struct", [&storage](const httplib::Request &req, httplib::Response &res) {
+    server.Post("/struct", [](const httplib::Request &req, httplib::Response &res) {
         spdlog::info("struct request: {}", req.body);
         auto body = nlohmann::json::parse(req.body);
         auto name = body["name"].get<std::string>();
@@ -110,6 +106,7 @@ int main(int argc, char *argv[]) {
         auto query = body["query"].get<std::map<std::string, std::set<std::string>>>();
 
         // download pdb
+        downloader storage;
         if (!storage.download(name, guid, age)) {
             throw std::runtime_error("download failed");
         }
@@ -141,7 +138,7 @@ int main(int argc, char *argv[]) {
     //         ...
     //     }
     // }
-    server.Post("/enum", [&storage](const httplib::Request &req, httplib::Response &res) {
+    server.Post("/enum", [](const httplib::Request &req, httplib::Response &res) {
         spdlog::info("enum request: {}", req.body);
         auto body = nlohmann::json::parse(req.body);
         auto name = body["name"].get<std::string>();
@@ -150,6 +147,7 @@ int main(int argc, char *argv[]) {
         auto query = body["query"].get<std::map<std::string, std::set<std::string>>>();
 
         // download pdb
+        downloader storage;
         if (!storage.download(name, guid, age)) {
             throw std::runtime_error("download failed");
         }

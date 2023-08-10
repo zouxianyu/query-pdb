@@ -6,28 +6,30 @@
 #include <spdlog/spdlog.h>
 #include "downloader.h"
 
-downloader::downloader(std::string path, std::string server)
-        : valid_(false),
-          path_(std::move(path)),
-          server_(std::move(server)) {
 
-    spdlog::info("create downloader, path: {}, server: {}", path_, server_);
-    if (server_.empty() || path_.empty()) {
-        spdlog::error("invalid downloader, path: {}, server: {}", path_, server_);
-        return;
-    }
+std::string downloader::pdb_path_="";
+std::pair<std::string,std::string> downloader::server_split_= std::make_pair("","");
+std::string downloader::msdl_server_="";
 
-    server_split_ = split_server_name();
-    if (server_split_.first.empty()) {
-        spdlog::error("split server name failed, server: {}", server_);
-        return;
-    }
-
-    valid_ = true;
+void downloader::set_default_pdb_path(std::string dir_path) {
+    downloader::pdb_path_=dir_path;
+    spdlog::info("set_default_pdb_path: {}", dir_path);
 }
 
-bool downloader::valid() const {
-    return valid_;
+void downloader::set_default_pdb_server(std::string msdl_server) {
+    spdlog::info("set_default_pdb_server: {}", msdl_server);
+    std::regex regex(R"(^((?:(?:http|https):\/\/)?[^\/]+)(\/.*)$)");
+    std::smatch match;
+    if (!std::regex_match(msdl_server, match, regex)) {
+        spdlog::info("invaild server url: {}",msdl_server);
+        return;
+    }
+    downloader::server_split_= std::make_pair(match[1].str(), match[2].str());
+    downloader::msdl_server_=msdl_server;
+}
+
+downloader::downloader(){
+
 }
 
 bool downloader::download(const std::string &name, const std::string &guid, uint32_t age) {
@@ -43,39 +45,36 @@ bool downloader::download(const std::string &name, const std::string &guid, uint
     return download_impl(relative_path);
 }
 
-std::string
-downloader::get_relative_path_str(const std::string &name, const std::string &guid, uint32_t age) {
+std::string downloader::get_relative_path_str(const std::string &name, const std::string &guid, uint32_t age) {
     std::stringstream ss;
     ss << std::hex << std::uppercase;
     ss << name << '/' << guid << age << '/' << name;
     return ss.str();
 }
 
-std::filesystem::path
-downloader::get_path(const std::string &name, const std::string &guid, uint32_t age) {
+std::filesystem::path downloader::get_path(const std::string &name, const std::string &guid, uint32_t age) {
     std::string relative_path = get_relative_path_str(name, guid, age);
-    auto path = std::filesystem::path(path_).append(relative_path);
+    auto path = std::filesystem::path(downloader::pdb_path_).append(relative_path);
     return path;
 }
 
 bool downloader::download_impl(const std::string &relative_path) {
-    std::lock_guard lock(mutex_);
     spdlog::info("download pdb, path: {}", relative_path);
-
-    auto path = std::filesystem::path(path_).append(relative_path);
+    auto path = std::filesystem::path(downloader::pdb_path_).append(relative_path);
     std::filesystem::create_directories(path.parent_path());
 
     std::string buf;
-    httplib::Client client(server_split_.first);
+    httplib::Client client(downloader::server_split_.first);
     client.set_follow_location(true);
-    auto res = client.Get(server_split_.second + relative_path);
+    auto res = client.Get(downloader::server_split_.second + relative_path);
     if (!res || res->status != 200) {
         spdlog::error("failed to download pdb, path: {}", relative_path);
         return false;
     }
 
-    auto tmp_path = path;
+    auto tmp_path = path.filename();
     tmp_path.replace_extension(".tmp");
+    std::filesystem::remove(tmp_path);
     std::ofstream f(tmp_path, std::ios::binary);
     if (!f.is_open()) {
         spdlog::error("failed to open file, path: {}", tmp_path.string());
@@ -89,13 +88,5 @@ bool downloader::download_impl(const std::string &relative_path) {
     return true;
 }
 
-std::pair<std::string, std::string> downloader::split_server_name() {
-    std::regex regex(R"(^((?:(?:http|https):\/\/)?[^\/]+)(\/.*)$)");
-    std::smatch match;
 
-    if (!std::regex_match(server_, match, regex)) {
-        return {};
-    }
 
-    return {match[1].str(), match[2].str()};
-}
