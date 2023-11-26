@@ -28,7 +28,7 @@ The traditional approach is to download the PDB file directly to the client and 
 
 ### Use the Public Test Server
 
-The IP address of the public test server is http://39.105.177.215:9025
+The public test server is http://www.zzzou.xyz:9025
 
 If you want to use this server, you can skip the next step.
 
