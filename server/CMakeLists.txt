@@ -51,6 +51,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x64/bin/libssl-1_1-x64.dll
                 ${CMAKE_BINARY_DIR}/server
         )
+        target_include_directories(
+                query_pdb_server
+                PRIVATE
+                ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x64/include
+        )
     else ()
         add_library(OpenSSL::SSL SHARED IMPORTED)
         set_target_properties(
@@ -77,6 +82,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x86/bin/libssl-1_1.dll
                 ${CMAKE_BINARY_DIR}/server
+        )
+        target_include_directories(
+                query_pdb_server
+                PRIVATE
+                ${CMAKE_SOURCE_DIR}/thirdparty/openssl/x86/include
         )
     endif ()
 else ()
