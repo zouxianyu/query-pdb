@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 project(query_pdb)
 
 add_subdirectory(thirdparty/cpp-httplib)
