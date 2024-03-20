@@ -74,6 +74,16 @@ bool downloader::download_impl(const std::string &relative_path) {
         return false;
     }
 
+    // download file size check
+    size_t content_length = 0;
+    if (res->has_header("Content-Length")) {
+        content_length = std::stoul(res->get_header_value("Content-Length"));
+    }
+    if (content_length == 0 || content_length != res->body.size()) {
+        spdlog::error("downloaded pdb size mismatch, path: {}", relative_path);
+        return false;
+    }
+
     auto tmp_path = path;
     tmp_path.replace_extension(".tmp");
     std::ofstream f(tmp_path, std::ios::binary);
