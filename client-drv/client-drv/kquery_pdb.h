@@ -38,6 +38,9 @@ public:
         if (server_.empty()) {
             return;
         }
+        if (server_.back() != '/') {
+            server_.push_back('/');
+        }
 
         kfile f(path);
         if (!f.valid()) {

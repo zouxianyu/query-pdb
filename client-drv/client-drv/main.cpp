@@ -15,7 +15,7 @@ NTSTATUS DriverMain(PDRIVER_OBJECT pDriverObj, PUNICODE_STRING pRegistryString) 
     pDriverObj->DriverUnload = DriverUnload;
 
     try {
-        kqpdb::set_default_server("http://39.105.177.215:9025/");
+        kqpdb::set_default_server("http://www.zzzou.xyz:9025");
         kqpdb pdb("\\SystemRoot\\System32\\ntoskrnl.exe");
 
         ////////////////////////////////////////////////////////////////////////

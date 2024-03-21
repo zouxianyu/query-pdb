@@ -16,6 +16,9 @@ downloader::downloader(std::string path, std::string server)
         spdlog::error("invalid downloader, path: {}, server: {}", path_, server_);
         return;
     }
+    if (server_.back() != '/') {
+        server_.push_back('/');
+    }
 
     server_split_ = split_server_name();
     if (server_split_.first.empty()) {
