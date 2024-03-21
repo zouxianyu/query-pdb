@@ -36,6 +36,9 @@ public:
         if (server_.empty()) {
             return;
         }
+        if (server_.back() == '/') {
+            server_.pop_back();
+        }
 
         std::ifstream f(path, std::ios::binary);
         if (!f.is_open()) {
