@@ -218,3 +218,18 @@ const char* GetTypeName(const PDB::TPIStream& tpiStream, uint32_t typeIndex, uin
 
     return "unknown_type";
 }
+
+const char* GetMethodName(const PDB::CodeView::TPI::FieldList* fieldRecord)
+{
+    auto methodAttributes = static_cast<PDB::CodeView::TPI::MethodProperty>(fieldRecord->data.LF_ONEMETHOD.attributes.mprop);
+    switch (methodAttributes)
+    {
+        case PDB::CodeView::TPI::MethodProperty::Intro:
+        case PDB::CodeView::TPI::MethodProperty::PureIntro:
+            return &reinterpret_cast<const char*>(fieldRecord->data.LF_ONEMETHOD.vbaseoff)[sizeof(uint32_t)];
+        default:
+            break;
+    }
+
+    return  &reinterpret_cast<const char*>(fieldRecord->data.LF_ONEMETHOD.vbaseoff)[0];
+}

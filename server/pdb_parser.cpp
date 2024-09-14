@@ -331,9 +331,13 @@ pdb_parser::get_struct_single(
                 result.insert({leaf_name, info});
             }
         } else if (field_record->kind == PDB::CodeView::TPI::TypeRecordKind::LF_NESTTYPE) {
+            leaf_name = &field_record->data.LF_NESTTYPE.name[0];
         } else if (field_record->kind == PDB::CodeView::TPI::TypeRecordKind::LF_STMEMBER) {
+            leaf_name = &field_record->data.LF_STMEMBER.name[0];
         } else if (field_record->kind == PDB::CodeView::TPI::TypeRecordKind::LF_METHOD) {
+            leaf_name = GetMethodName(field_record);
         } else if (field_record->kind == PDB::CodeView::TPI::TypeRecordKind::LF_ONEMETHOD) {
+            leaf_name = GetMethodName(field_record);
         } else if (field_record->kind == PDB::CodeView::TPI::TypeRecordKind::LF_BCLASS) {
             leaf_name = GetLeafName(field_record->data.LF_BCLASS.offset,
                                     field_record->data.LF_BCLASS.lfEasy.kind);
