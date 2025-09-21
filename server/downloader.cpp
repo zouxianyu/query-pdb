@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cctype>
 #include <sstream>
 #include <filesystem>
 #include <regex>
@@ -46,11 +48,23 @@ bool downloader::download(const std::string &name, const std::string &guid, uint
     return download_impl(relative_path);
 }
 
+static std::string to_upper(const std::string &s) {
+    std::string result = s;
+    std::transform(result.begin(), result.end(), result.begin(), toupper);
+    return s;
+}
+
+static std::string to_lower(const std::string &s) {
+    std::string result = s;
+    std::transform(result.begin(), result.end(), result.begin(), tolower);
+    return s;
+}
+
 std::string
 downloader::get_relative_path_str(const std::string &name, const std::string &guid, uint32_t age) {
     std::stringstream ss;
-    ss << std::hex << std::uppercase;
-    ss << name << '/' << guid << age << '/' << name;
+    ss << std::hex;
+    ss << to_lower(name) << '/' << to_upper(guid) << age << '/' << to_lower(name);
     return ss.str();
 }
 
