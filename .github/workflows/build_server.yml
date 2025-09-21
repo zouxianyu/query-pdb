@@ -33,7 +33,7 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target query_pdb_server
 
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: query-pdb-server-${{matrix.os}}
           path: ${{github.workspace}}/build/server/query_pdb_server
@@ -73,7 +73,7 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target query_pdb_server
 
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: query-pdb-server-windows-${{matrix.arch}}
           path: |
