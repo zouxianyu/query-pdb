@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  microsoft:
+    image: zouxianyu/query-pdb-server
+    volumes:
+      - ./save:/app/save
+    ports:
+      - "80:8080"
+    command: --server=https://msdl.microsoft.com/download/symbols/ --path=/app/save
+    restart: unless-stopped
+
+  mirror:
+    image: zouxianyu/query-pdb-server
+    volumes:
+      - ./save:/app/save
+    ports:
+      - "80:8080"
+    command: --server=http://msdl.szdyg.cn/download/symbols/ --path=/app/save
+    restart: unless-stopped

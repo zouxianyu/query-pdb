@@ -92,22 +92,10 @@ jobs:
           files: query-pdb-server-windows-${{matrix.arch}}.zip
 
   build-docker:
-    strategy:
-      matrix:
-        pdb-source:
-          - name: microsoft
-            url: https://msdl.microsoft.com/download/symbols/
-          - name: mirror
-            url: http://msdl.szdyg.cn/download/symbols/
-
     runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Add PDB Source to supervisord.conf
-        run: |
-          sed -i "s|\(command=.*\)|\1 --server=${{matrix.pdb-source.url}} --path=/save|" supervisord.conf
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -125,4 +113,4 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ${{secrets.DOCKERHUB_USERNAME}}/query-pdb-server:${{matrix.pdb-source.name}}-latest
+            ${{secrets.DOCKERHUB_USERNAME}}/query-pdb-server:latest

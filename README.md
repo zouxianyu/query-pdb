@@ -48,8 +48,7 @@ Usage:
       --port arg    port (default: 8080)
       --path arg    download path (default: save)
       --server arg  download server (default:
-                    http://msdl.microsoft.com/download/symbols/)
-      --log         write log to file (1 means true, 0 means false)
+                    https://msdl.microsoft.com/download/symbols/)
   -h, --help        print help
 ```
 
@@ -316,43 +315,41 @@ PagedPool: 1
 
 ## Run In Docker
 
-On servers, to provide isolation, services typically run in Docker. The `Dockerfile` is provided in the root of the repository for building Docker containers and `supervisord.conf` for configuring process monitoring.
+On servers, to provide isolation, services typically run in Docker.
 
-You can modify `supervisord.conf` to customize the startup options.
+### Using Docker
 
-```
-[program:query-pdb-server]
-command=/query-pdb/build/server/query_pdb_server <your options...>
-autostart=true
-autorestart=true
-```
+The `Dockerfile` is provided in the root of the repository for building Docker containers. You can build the Docker image with the following commands:
 
-Once you have modified the  `supervisord.conf` , you are ready to build the Docker container. You can use the following command to build it.
-
-```
+```bash
 cd query-pdb
 docker build -t zouxianyu/query-pdb-server .
 ```
 
-If you don't like to build your own Docker images, I also provide already built Docker images on Docker Hub. You can download Docker images from Docker Hub with the following command. These images all save the cached PDB files in the `save` folder in the root directory, you can map this path to the host so that you can store these PDB files persistently. The mirror labeled `microsoft-latest` uses the official Microsoft PDB download server, and the mirror labeled `mirror-latest` uses the mirror server within China. 
+You can customize the server options by passing them as command arguments:
 
-```
-docker pull zouxianyu/query-pdb-server:microsoft-latest
-```
-
-or
-
-```
-docker pull zouxianyu/query-pdb-server:mirror-latest
+```bash
+docker run -p 80:8080 -v ./save:/app/save -d zouxianyu/query-pdb-server --ip=0.0.0.0 --port=8080 --server=https://msdl.microsoft.com/download/symbols/ --path=/app/save
 ```
 
-Then you can run the container with the following command.
+### Using Docker Compose
 
-Note: `<your tag>` needs to be replaced with the tag of the Docker image you are using, such as `microsoft-latest` or `mirror-latest`. If you built your image yourself, you may need to replace it with `latest` or some other tag. If you do not understand the meaning of the following commands, please consult the Docker manual.
+For easier management, you can also use Docker Compose. A `docker-compose.yml` file is provided in the repository with two service configurations:
 
+1. `microsoft` - Uses the official Microsoft PDB download server
+2. `mirror` - Uses a mirror server in China for better access from mainland China
+
+To start the service using Docker Compose:
+
+```bash
+# Start the microsoft service (using official Microsoft PDB server)
+docker-compose up -d microsoft
+
+# Or start the mirror service (using China mirror)
+docker-compose up -d mirror
 ```
-docker run -p 80:8080 -itd zouxianyu/query-pdb-server:<your tag>
-```
+
+If you need to customize the configuration, you can modify the `docker-compose.yml` file according to your requirements.
 
 ## Credits
 
