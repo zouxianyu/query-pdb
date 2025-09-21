@@ -17,7 +17,6 @@ int main(int argc, char *argv[]) {
             ("path", "download path", cxxopts::value<std::string>()->default_value("save"))
             ("server", "download server", cxxopts::value<std::string>()->default_value(
                     "https://msdl.microsoft.com/download/symbols/"))
-            ("log", "write log to file", cxxopts::value<bool>()->default_value("false"))
             ("h,help", "print help");
 
     auto parse_result = option_parser.parse(argc, argv);
@@ -31,11 +30,6 @@ int main(int argc, char *argv[]) {
     const auto port = parse_result["port"].as<uint16_t>();
     const auto download_path = parse_result["path"].as<std::string>();
     const auto download_server = parse_result["server"].as<std::string>();
-    const auto log_to_file = parse_result["log"].as<bool>();
-
-    if (log_to_file) {
-        spdlog::set_default_logger(spdlog::daily_logger_mt("query-pdb", "server.log"));
-    }
 
     downloader storage(download_path, download_server);
     if (!storage.valid()) {
