@@ -79,9 +79,6 @@ bool downloader::download_impl(const std::string &relative_path) {
     std::lock_guard lock(mutex_);
     spdlog::info("download pdb, path: {}", relative_path);
 
-    auto path = std::filesystem::path(path_).append(relative_path);
-    std::filesystem::create_directories(path.parent_path());
-
     std::string buf;
     httplib::Client client(server_split_.first);
     client.set_follow_location(true);
@@ -101,6 +98,8 @@ bool downloader::download_impl(const std::string &relative_path) {
         return false;
     }
 
+    auto path = std::filesystem::path(path_).append(relative_path);
+    std::filesystem::create_directories(path.parent_path());
     auto tmp_path = path;
     tmp_path.replace_extension(".tmp");
     std::ofstream f(tmp_path, std::ios::binary);
