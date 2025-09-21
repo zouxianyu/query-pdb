@@ -26,9 +26,11 @@ private:
     static std::string
     get_relative_path_str(const std::string &name, const std::string &guid, uint32_t age);
 
-    bool download_impl(const std::string &relative_path);
+    bool download_impl(const std::string &name, const std::string &guid, uint32_t age);
 
     std::pair<std::string, std::string> split_server_name();
+
+    bool is_valid_pdb(const std::string &name, const std::filesystem::path &path);
 };
 
 #endif //QUERY_PDB_SERVER_DOWNLOADER_H

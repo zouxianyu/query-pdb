@@ -26,6 +26,12 @@ struct field_info {
     }
 };
 
+struct pdb_stats {
+    size_t public_symbol_count;
+    size_t global_symbol_count;
+    size_t type_count;
+};
+
 class pdb_parser {
 public:
     explicit pdb_parser(const std::string &filename);
@@ -37,6 +43,8 @@ public:
 
     std::map<std::string, std::map<std::string, int64_t>>
     get_enum(const std::map<std::string, std::set<std::string>> &names) const;
+
+    pdb_stats get_stats();
 
 private:
     handle_guard file_{};
@@ -76,6 +84,12 @@ private:
             const PDB::CodeView::TPI::Record *record,
             uint8_t underlying_type_size,
             const std::set<std::string> &names
+    );
+
+    static pdb_stats get_stats_impl(
+            const PDB::RawFile &raw_file,
+            const PDB::DBIStream &dbi_stream,
+            const PDB::TPIStream &tpi_stream
     );
 
     template<typename F, typename ...Args>

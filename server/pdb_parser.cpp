@@ -19,6 +19,10 @@ pdb_parser::get_enum(const std::map<std::string, std::set<std::string>> &names) 
     return call_with_pdb_stream(get_enum_impl, names);
 }
 
+pdb_stats pdb_parser::get_stats() {
+    return call_with_pdb_stream(get_stats_impl);
+}
+
 std::map<std::string, int64_t>
 pdb_parser::get_symbols_impl(
         const PDB::RawFile &raw_file,
@@ -475,4 +479,27 @@ pdb_parser::get_enum_single(
     }
 
     return result;
+}
+
+pdb_stats pdb_parser::get_stats_impl(
+        const PDB::RawFile &raw_file,
+        const PDB::DBIStream &dbi_stream,
+        const PDB::TPIStream &tpi_stream
+) {
+    pdb_stats stats{};
+
+    // public symbol
+    const PDB::PublicSymbolStream public_symbol_stream =
+            dbi_stream.CreatePublicSymbolStream(raw_file);
+    stats.public_symbol_count = public_symbol_stream.GetRecords().GetLength();
+
+    // global symbol
+    const PDB::GlobalSymbolStream global_symbol_stream =
+            dbi_stream.CreateGlobalSymbolStream(raw_file);
+    stats.global_symbol_count = global_symbol_stream.GetRecords().GetLength();
+
+    // type
+    stats.type_count = tpi_stream.GetTypeRecords().GetLength();
+
+    return stats;
 }

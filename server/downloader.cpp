@@ -6,6 +6,7 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 #include <spdlog/spdlog.h>
+#include "pdb_parser.h"
 #include "downloader.h"
 
 downloader::downloader(std::string path, std::string server)
@@ -45,7 +46,7 @@ bool downloader::download(const std::string &name, const std::string &guid, uint
         return true;
     }
 
-    return download_impl(relative_path);
+    return download_impl(name, guid, age);
 }
 
 static std::string to_upper(const std::string &s) {
@@ -75,8 +76,9 @@ downloader::get_path(const std::string &name, const std::string &guid, uint32_t 
     return path;
 }
 
-bool downloader::download_impl(const std::string &relative_path) {
+bool downloader::download_impl(const std::string &name, const std::string &guid, uint32_t age) {
     std::lock_guard lock(mutex_);
+    std::string relative_path = get_relative_path_str(name, guid, age);
     spdlog::info("download pdb, path: {}", relative_path);
 
     std::string buf;
@@ -110,6 +112,11 @@ bool downloader::download_impl(const std::string &relative_path) {
     f.write(res->body.c_str(), static_cast<std::streamsize>(res->body.size()));
     f.close();
 
+    if (!is_valid_pdb(name, tmp_path)) {
+        spdlog::error("downloaded pdb file is invalid, path: {}", relative_path);
+        return false;
+    }
+
     std::filesystem::rename(tmp_path, path);
     spdlog::info("download pdb success, path: {}", relative_path);
     return true;
@@ -124,4 +131,19 @@ std::pair<std::string, std::string> downloader::split_server_name() {
     }
 
     return {match[1].str(), match[2].str()};
+}
+
+bool downloader::is_valid_pdb(const std::string &name, const std::filesystem::path &path) {
+    pdb_parser parser(path.string());
+    pdb_stats stats = parser.get_stats();
+
+    std::string lower_name = to_lower(name);
+    if (lower_name == "ntoskrnl.pdb" || lower_name == "ntkrnlmp.pdb") {
+        // ignore kernel pdb file with no type info
+        if (stats.type_count == 0) {
+            return false;
+        }
+    }
+
+    return true;
 }
