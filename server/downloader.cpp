@@ -37,8 +37,11 @@ bool downloader::valid() const {
 }
 
 bool downloader::download(const std::string &name, const std::string &guid, uint32_t age) {
+    std::lock_guard lock(mutex_);
+
     std::string relative_path = get_relative_path_str(name, guid, age);
-    auto path = get_path(name, guid, age);
+    auto path = std::filesystem::path(path_).append(relative_path);
+
     spdlog::info("lookup pdb, path: {}", relative_path);
 
     if (std::filesystem::exists(path)) {
@@ -46,7 +49,46 @@ bool downloader::download(const std::string &name, const std::string &guid, uint
         return true;
     }
 
-    return download_impl(name, guid, age);
+    spdlog::info("download pdb, path: {}", relative_path);
+
+    std::string buf;
+    httplib::Client client(server_split_.first);
+    client.set_follow_location(true);
+    auto res = client.Get(server_split_.second + relative_path);
+    if (!res || res->status != 200) {
+        spdlog::error("failed to download pdb, path: {}", relative_path);
+        return false;
+    }
+
+    // download file size check
+    size_t content_length = 0;
+    if (res->has_header("Content-Length")) {
+        content_length = std::stoul(res->get_header_value("Content-Length"));
+    }
+    if (content_length == 0 || content_length != res->body.size()) {
+        spdlog::error("downloaded pdb size mismatch, path: {}", relative_path);
+        return false;
+    }
+
+    std::filesystem::create_directories(path.parent_path());
+    auto tmp_path = path;
+    tmp_path.replace_extension(".tmp");
+    std::ofstream f(tmp_path, std::ios::binary);
+    if (!f.is_open()) {
+        spdlog::error("failed to open file, path: {}", tmp_path.string());
+        return false;
+    }
+    f.write(res->body.c_str(), static_cast<std::streamsize>(res->body.size()));
+    f.close();
+
+    if (!is_valid_pdb(name, tmp_path)) {
+        spdlog::error("downloaded pdb file is invalid, path: {}", relative_path);
+        return false;
+    }
+
+    std::filesystem::rename(tmp_path, path);
+    spdlog::info("download pdb success, path: {}", relative_path);
+    return true;
 }
 
 static std::string to_upper(const std::string &s) {
@@ -74,52 +116,6 @@ downloader::get_path(const std::string &name, const std::string &guid, uint32_t 
     std::string relative_path = get_relative_path_str(name, guid, age);
     auto path = std::filesystem::path(path_).append(relative_path);
     return path;
-}
-
-bool downloader::download_impl(const std::string &name, const std::string &guid, uint32_t age) {
-    std::lock_guard lock(mutex_);
-    std::string relative_path = get_relative_path_str(name, guid, age);
-    spdlog::info("download pdb, path: {}", relative_path);
-
-    std::string buf;
-    httplib::Client client(server_split_.first);
-    client.set_follow_location(true);
-    auto res = client.Get(server_split_.second + relative_path);
-    if (!res || res->status != 200) {
-        spdlog::error("failed to download pdb, path: {}", relative_path);
-        return false;
-    }
-
-    // download file size check
-    size_t content_length = 0;
-    if (res->has_header("Content-Length")) {
-        content_length = std::stoul(res->get_header_value("Content-Length"));
-    }
-    if (content_length == 0 || content_length != res->body.size()) {
-        spdlog::error("downloaded pdb size mismatch, path: {}", relative_path);
-        return false;
-    }
-
-    auto path = std::filesystem::path(path_).append(relative_path);
-    std::filesystem::create_directories(path.parent_path());
-    auto tmp_path = path;
-    tmp_path.replace_extension(".tmp");
-    std::ofstream f(tmp_path, std::ios::binary);
-    if (!f.is_open()) {
-        spdlog::error("failed to open file, path: {}", tmp_path.string());
-        return false;
-    }
-    f.write(res->body.c_str(), static_cast<std::streamsize>(res->body.size()));
-    f.close();
-
-    if (!is_valid_pdb(name, tmp_path)) {
-        spdlog::error("downloaded pdb file is invalid, path: {}", relative_path);
-        return false;
-    }
-
-    std::filesystem::rename(tmp_path, path);
-    spdlog::info("download pdb success, path: {}", relative_path);
-    return true;
 }
 
 std::pair<std::string, std::string> downloader::split_server_name() {
