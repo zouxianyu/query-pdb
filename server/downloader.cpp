@@ -94,13 +94,13 @@ bool downloader::download(const std::string &name, const std::string &guid, uint
 static std::string to_upper(const std::string &s) {
     std::string result = s;
     std::transform(result.begin(), result.end(), result.begin(), toupper);
-    return s;
+    return result;
 }
 
 static std::string to_lower(const std::string &s) {
     std::string result = s;
     std::transform(result.begin(), result.end(), result.begin(), tolower);
-    return s;
+    return result;
 }
 
 std::string
