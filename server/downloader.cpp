@@ -36,7 +36,30 @@ bool downloader::valid() const {
     return valid_;
 }
 
+static bool is_valid_name(const std::string &name) {
+    if (name.empty()) return false;
+    for (char c : name) {
+        if (!std::isalnum(static_cast<unsigned char>(c)) && c != '.' && c != '_' && c != '-')
+            return false;
+    }
+    return true;
+}
+
+static bool is_valid_guid(const std::string &guid) {
+    if (guid.empty()) return false;
+    for (char c : guid) {
+        if (!std::isxdigit(static_cast<unsigned char>(c)))
+            return false;
+    }
+    return true;
+}
+
 bool downloader::download(const std::string &name, const std::string &guid, uint32_t age) {
+    if (!is_valid_name(name) || !is_valid_guid(guid)) {
+        spdlog::error("invalid name or guid, name: {}, guid: {}", name, guid);
+        return false;
+    }
+
     std::lock_guard lock(mutex_);
 
     std::string relative_path = get_relative_path_str(name, guid, age);
